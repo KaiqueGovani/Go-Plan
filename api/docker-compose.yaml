@@ -1,0 +1,54 @@
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    volumes:
+      - mailpit:/data
+    ports:
+      - 1025:1025
+      - 8025:8025
+    environment:
+      MP_DATABASE: /data/mailpit.db
+
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_USER: ${JOURNEY_DATABASE_USER}
+      POSTGRES_DB: ${JOURNEY_DATABASE_NAME}
+      POSTGRES_PASSWORD: ${JOURNEY_DATABASE_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    ports:
+      - 8081:80
+    env_file:
+      - .env.prod
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    depends_on:
+      - db
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.prod
+    depends_on:
+      - db
+
+volumes:
+  db:
+    driver: local
+  pgadmin:
+    driver: local
+  mailpit:
+    driver: local
