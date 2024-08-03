@@ -122,6 +122,11 @@ type GetTripParticipantsResponseArray struct {
 	Name        *string             `json:"name"`
 }
 
+// GetTripsResponse defines model for GetTripsResponse.
+type GetTripsResponse struct {
+	Trips []GetTripDetailsResponseTripObj `json:"trips"`
+}
+
 // InviteParticipantRequest defines model for InviteParticipantRequest.
 type InviteParticipantRequest struct {
 	Email openapi_types.Email `json:"email" validate:"required,email"`
@@ -243,6 +248,26 @@ func PatchParticipantsParticipantIDConfirmJSON204Response(body interface{}) *Res
 // PatchParticipantsParticipantIDConfirmJSON400Response is a constructor method for a PatchParticipantsParticipantIDConfirm response.
 // A *Response is returned with the configured status code and content type from the spec.
 func PatchParticipantsParticipantIDConfirmJSON400Response(body Error) *Response {
+	return &Response{
+		body:        body,
+		Code:        400,
+		contentType: "application/json",
+	}
+}
+
+// GetTripsJSON200Response is a constructor method for a GetTrips response.
+// A *Response is returned with the configured status code and content type from the spec.
+func GetTripsJSON200Response(body GetTripsResponse) *Response {
+	return &Response{
+		body:        body,
+		Code:        200,
+		contentType: "application/json",
+	}
+}
+
+// GetTripsJSON400Response is a constructor method for a GetTrips response.
+// A *Response is returned with the configured status code and content type from the spec.
+func GetTripsJSON400Response(body Error) *Response {
 	return &Response{
 		body:        body,
 		Code:        400,
@@ -455,6 +480,9 @@ type ServerInterface interface {
 	// Confirms a participant on a trip.
 	// (PATCH /participants/{participantId}/confirm)
 	PatchParticipantsParticipantIDConfirm(w http.ResponseWriter, r *http.Request, participantID string) *Response
+	// Lists all trips
+	// (GET /trips)
+	GetTrips(w http.ResponseWriter, r *http.Request) *Response
 	// Create a new trip
 	// (POST /trips)
 	PostTrips(w http.ResponseWriter, r *http.Request) *Response
@@ -507,6 +535,24 @@ func (siw *ServerInterfaceWrapper) PatchParticipantsParticipantIDConfirm(w http.
 
 	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		resp := siw.Handler.PatchParticipantsParticipantIDConfirm(w, r, participantID)
+		if resp != nil {
+			if resp.body != nil {
+				render.Render(w, r, resp)
+			} else {
+				w.WriteHeader(resp.Code)
+			}
+		}
+	})
+
+	handler(w, r.WithContext(ctx))
+}
+
+// GetTrips operation middleware
+func (siw *ServerInterfaceWrapper) GetTrips(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		resp := siw.Handler.GetTrips(w, r)
 		if resp != nil {
 			if resp.body != nil {
 				render.Render(w, r, resp)
@@ -887,6 +933,7 @@ func Handler(si ServerInterface, opts ...ServerOption) http.Handler {
 
 	r.Route(options.BaseURL, func(r chi.Router) {
 		r.Patch("/participants/{participantId}/confirm", wrapper.PatchParticipantsParticipantIDConfirm)
+		r.Get("/trips", wrapper.GetTrips)
 		r.Post("/trips", wrapper.PostTrips)
 		r.Get("/trips/{tripId}", wrapper.GetTripsTripID)
 		r.Put("/trips/{tripId}", wrapper.PutTripsTripID)
@@ -922,30 +969,31 @@ func WithErrorHandler(handler func(w http.ResponseWriter, r *http.Request, err e
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"5x4cjfh4PlQ3lst/AwAA//8vxohsEy0AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

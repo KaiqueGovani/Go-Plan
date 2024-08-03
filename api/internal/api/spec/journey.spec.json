@@ -258,6 +258,28 @@
       }
     },
     "/trips": {
+      "get": { 
+        "summary": "Lists all trips",
+        "tags": ["trips"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetTripsResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "summary": "Create a new trip",
         "tags": ["trips"],
@@ -566,6 +588,19 @@
         "type": "object",
         "properties": { "tripId": { "type": "string", "format": "uuid" } },
         "required": ["tripId"],
+        "additionalProperties": false
+      },
+      "GetTripsResponse": {
+        "type": "object",
+        "properties": {
+          "trips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetTripDetailsResponseTripObj"
+            }
+          }
+        },
+        "required": ["trips"],
         "additionalProperties": false
       },
       "GetTripDetailsResponse": {
