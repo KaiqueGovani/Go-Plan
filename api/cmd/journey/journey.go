@@ -13,10 +13,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MarceloPetrucio/go-scalar-api-reference"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/phenpessoa/gutils/netutils/httputils"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -69,6 +71,31 @@ func run(ctx context.Context) error {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer, httputils.ChiLogger(logger))
 	r.Mount("/", spec.Handler(si))
+
+	// Setup Swagger UI
+	r.Get("/swagger.json", func(w http.ResponseWriter, r *http.Request) {
+        http.ServeFile(w, r, "../../internal/api/spec/journey.spec.json")
+    })
+	r.Get("/swagger/*", httpSwagger.Handler(
+        httpSwagger.URL("/swagger.json"), // The url pointing to API definition
+    ))
+	// Setup Scalar docs
+	r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+		htmlContent, err := scalar.ApiReferenceHTML(&scalar.Options{
+			SpecURL: "../../internal/api/spec/journey.spec.json", 
+			CustomOptions: scalar.CustomOptions{
+				PageTitle: "Simple API",
+			},
+			DarkMode: true,
+		})
+
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
+
+		fmt.Fprintln(w, htmlContent)
+	})
+
 
 	srv := &http.Server{
 		Addr: ":8080",
